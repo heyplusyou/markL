@@ -1,0 +1,149 @@
+:root {
+  color-scheme: light dark;
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  /* --bg is also in src-tauri/src/lib.rs (background), which paints the window before the page loads. */
+  --bg: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #8e8e93;
+  --accent: #0a66d8;
+  --sidebar-bg: #f5f5f7;
+  --border: #e3e3e6;
+  --hover: rgb(0 0 0 / 0.05);
+  --selected: rgb(0 0 0 / 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e20;
+    --fg: #e8e8ea;
+    --muted: #7c7c82;
+    --accent: #5aa2ff;
+    --sidebar-bg: #252528;
+    --border: #333337;
+    --hover: rgb(255 255 255 / 0.06);
+    --selected: rgb(255 255 255 / 0.1);
+  }
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#sidebar {
+  overflow-y: auto;
+  padding: 12px 8px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  font-size: 13px;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#sidebar h2 {
+  margin: 4px 8px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#sidebar li {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+
+#sidebar li:hover {
+  background: var(--hover);
+}
+
+#sidebar li.current {
+  background: var(--selected);
+}
+
+#sidebar button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+#sidebar .file {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 5px 8px;
+  text-align: left;
+}
+
+#sidebar .name,
+#sidebar .dir {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#sidebar .dir {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+#sidebar .missing .name {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+#sidebar .remove {
+  visibility: hidden;
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+#sidebar li:hover .remove,
+#sidebar .remove:focus-visible {
+  visibility: visible;
+}
+
+#sidebar .remove:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+#sidebar .empty {
+  margin: 4px 8px;
+  color: var(--muted);
+}
+
+#editor {
+  min-height: 0;
+  overflow: hidden;
+}
+
+#sidebar .current .name {
+  font-weight: 600;
+}

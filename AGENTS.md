@@ -1,0 +1,165 @@
+# markL: agent instructions
+
+markL is a lightweight, low-memory, fast markdown editor for macOS, Windows and Linux, with inline rendering and
+a sidebar of recently opened files. README.md is for users: features, performance budget, stack and roadmap.
+This file is how to work on the code.
+
+## Status
+
+Roadmap steps 1 to 3 are done on macOS: the window starts fast; files can be opened, edited and saved (New,
+Open, Save, Save As, unsaved-changes prompts, a file named on the command line at startup); the sidebar lists
+recent files. The Windows measurement is still open. Next: step 4, inline rendering.
+
+## Commands
+
+```sh
+bun install
+bun run tauri dev                    # debug build, Vite with hot reload on :1420
+bun run tauri build --bundles app    # release .app in src-tauri/target/release/bundle/macos (~1 min, LTO)
+bun run measure                      # startup + memory of the release build, macOS; --runs N --idle S --file F
+bun run fixtures                     # bench/fixtures/{100k,1m,10m}.md, generated, not committed
+bun run test                         # vite build, tests/frontend.py (Chromium), cargo test
+bunx tsc --noEmit                    # type-check the frontend
+cd src-tauri && cargo fmt && cargo clippy --release -- -D warnings
+```
+
+Rust comes from rustup (`source ~/.cargo/env` in a fresh shell). The bundle identifier is `de.end3.markl`.
+
+## Stack and layout
+
+Tauri 2 (Rust) with the system webview, CodeMirror 6 for the editor, TypeScript without a UI framework, Vite,
+and bun as the package manager.
+
+```
+src-tauri/src/lib.rs        app setup, document state, Tauri commands, close/quit handling
+src-tauri/src/document.rs   reading and writing files: UTF-8 check, line endings, BOM, atomic save (unit tests)
+src-tauri/src/menu.rs       the app menu
+src-tauri/src/recent.rs     the recent-files list: add, remove, load, save, folder display (unit tests)
+src/main.ts                 document flow: load, edited flag, open/save/close commands, prompts
+src/editor.ts               CodeMirror setup: extensions, highlighting, theme
+src/sidebar.ts              the recent-files list in the sidebar (DOM only, no state of its own)
+tests/frontend.py           frontend tests in Chromium with Tauri's IPC mocked
+scripts/                    measure-macos.py (startup, memory), make-fixtures.py (large test files)
+```
+
+Platforms, in priority order: macOS (WKWebView), Windows (WebView2, Chromium), Linux (WebKitGTK). Build and verify
+on macOS first. Check on Windows before a release. Linux comes last, but nothing may rule it out.
+
+## Startup
+
+How the window comes up, and why (`src-tauri/src/lib.rs`):
+
+- The window is defined in `tauri.conf.json` with `create: false` and created in `setup`, hidden, with an
+  incognito (non-persistent) web data store. Incognito saves 2 to 4 MB, and markL never uses browser storage.
+- It is painted in the page background for the current theme (`background()`, which must match `--bg` in
+  `src/styles.css`) and shown at once, before the page has loaded. WebKit loads pages in hidden windows about
+  40 ms more slowly, and showing the window early puts it on screen about 130 ms before the page is ready, without
+  a white flash in dark mode.
+- The frontend calls the `ready` command once the editor can be typed in, with the startup file loaded. With
+  `MARKL_TIMING=1`, markL prints `markl-timing main=… shown=… ready=…` (ms since the epoch) to stderr;
+  `scripts/measure-macos.py` reads it. The editor adds ~35 ms and ~5 MB to an empty page.
+- Where the time goes on macOS (warm, after `open`): ~65 ms until `main`, ~45 ms Tauri `Builder::build`, ~30 ms
+  until `setup`, ~95 ms creating the window and WKWebView, ~120 ms until WebKit's content process starts
+  navigating, ~7 ms to load and run the page. Only the last part is ours; keep it small.
+
+## Documents and commands
+
+- **Rust owns where the document lives, the frontend owns its text.** `Document` in lib.rs holds the path, the
+  file's format (line endings, BOM) and the edited flag. The webview never passes a path: it can only open what
+  the user picked in a dialog or named on the command line, and save to the current path or one picked in the
+  save dialog. `open_recent` accepts only paths that are on the recent list.
+- **Commands** (all in lib.rs): `open_startup_file`, `open_file`, `open_recent`, `save`, `save_as`, `new_file`,
+  `set_edited`, `ask_save_changes` ("save" | "discard" | "cancel"), `recent_files`, `remove_recent`, `quit`,
+  `ready`. File text travels as raw bytes both ways
+  (`Response` out, `InvokeBody::Raw` in); Rust checks it's UTF-8 before sending. A command that was cancelled
+  or failed rejects; Rust has already shown any error, so the frontend just stops.
+- **Menu and window events → frontend:** menu items emit a `command` event with their id (`new`, `open`, `save`,
+  `save-as`). Closing the window or quitting with unsaved changes is prevented in Rust and sent as `close`; the
+  frontend asks, saves if needed, then calls `quit`. Without unsaved changes, Rust closes or quits directly.
+  This is why the capability allows `core:event:allow-listen`/`unlisten` and nothing else.
+- **Edited:** the frontend compares the document with the text as last opened or saved (`Text.eq`, cheap thanks
+  to shared structure), so undoing back to the saved text clears it. It tells Rust on each change of the flag;
+  Rust puts "— Edited" in the title and uses the flag for close and quit.
+- **Dialogs** use `rfd` directly (not tauri-plugin-dialog, which pulls in tauri-plugin-fs). macOS needs them on the
+  main thread: `on_main` runs the dialog there as a separate main-thread task and waits without blocking.
+- **Recent files** (`recent.rs`): at most 20 paths, most recent first, in `<config dir>/markL/recent.json`
+  (Tauri's `path().config_dir()`). A file goes to the top when it's opened, or saved to a new path. The list is
+  written atomically, and only when it changes. Paths that aren't UTF-8 are left out. `recent_files` builds the
+  sidebar entries (name, shortened folder, exists, current); it `stat`s every file, so it's an async command
+  off the main thread, where a slow network volume can't stall the UI. The frontend asks for the list after
+  every open, save, new and removal, and when the window gets focus, so files moved meanwhile show as missing.
+- Files are UTF-8 only; anything else is refused with a message, never converted. Mixed line endings are saved
+  with the first one found (`document::Format`).
+- **Editor:** import `markdownLanguage` and `markdownKeymap` from `@codemirror/lang-markdown`, not `markdown()`,
+  which bundles HTML, CSS and JavaScript highlighting. The JS bundle is 315 KB (103 KB gzipped), nearly all of
+  it CodeMirror. Spellcheck, autocorrect and autocapitalize are off.
+- **Large files:** don't force a full parse (`forceParsing`). @lezer/markdown keeps every top-level block as a
+  direct child of the document node and rebuilds that list on each re-parse, so an edit costs time in proportion
+  to how much of the document is parsed: ~12 ms near the end of a 10 MB file however it was parsed, ~1 ms
+  near the start when only the viewport is parsed. A full parse of 10 MB also takes ~0.8 s and ~46 MB.
+  CodeMirror's default (parse around the viewport) is the better trade.
+
+## Principles
+
+- **The performance budget in README is a requirement.** Measure before and after any change that can affect
+  startup, memory, typing latency, bundle or download size, and report the numbers with the change.
+- **Every dependency has to earn its place.** Before adding one, check its size and what it pulls in, on both the
+  Rust and the npm side. No UI framework in the frontend.
+- **The document is the markdown text.** Inline rendering uses CodeMirror decorations and widgets only. Never
+  rewrite the user's text in order to render it. A saved file contains the editor text exactly. CodeMirror stores
+  line breaks as `\n`, so remember the file's line endings (and BOM) when loading and restore them when saving.
+- **Files are the source of truth.** markL edits files in place and never moves, copies or indexes them. It only
+  stores the recent-files list and window settings, in the OS config directory
+  (`~/Library/Application Support/markL`, `%APPDATA%\markL`, `$XDG_CONFIG_HOME/markL`). Never file contents.
+- **Never lose text.** Save atomically (write a temporary file next to the original, then rename). Keep unsaved
+  changes when the file changes on disk, and ask before discarding anything.
+- **Rust does file access.** The webview gets the fewest Tauri capabilities possible: no general filesystem
+  plugin. It calls narrow commands such as open, save and list recent files. Send file contents over IPC as raw
+  responses (`tauri::ipc::Response`), not JSON. Only allow the asset protocol for images next to the open file.
+- **Work lazily.** Don't parse, render or lay out text that isn't visible. Load CodeMirror language packs for code
+  blocks only when a block needs one. Building the sidebar may `stat` the listed files, never read them.
+- **Same behaviour on every platform.** Platform-specific code lives behind one small module per side.
+
+## Measuring
+
+- **macOS:** `bun run measure` launches the release build through LaunchServices several times and reports, per
+  run and as the median, the time from `open` to `main`, to the window on screen and to `ready`, and the memory
+  after an idle wait. Memory is `footprint`'s total for markL plus every process macOS holds it responsible for
+  (`responsibility_get_pid_responsible_for_pid`): WebKit's WebContent, GPU and Networking processes and
+  `com.apple.audio.SandboxHelper`. Shared memory is counted once. The first launch after a build is slow
+  (~750 ms) because macOS checks the new binary; ignore it, or measure it separately as the first launch.
+- **Windows:** the `msedgewebview2.exe` processes belong to markL; use "Memory (private working set)" in Task
+  Manager. **Linux:** `Pss` from `/proc/<pid>/smaps_rollup` for each WebKitGTK process.
+- **Memory and startup with a file:** `bun run measure --file bench/fixtures/100k.md` passes the file on the
+  command line; `ready` then means the file is in the editor. With 100 KB, WebContent grows by ~9 MB over an empty
+  editor (JS heap, syntax tree, compiled parser code).
+- **Startup:** warm launches, median of several runs. A true cold start needs a reboot; measure it before
+  releases.
+- **Typing latency:** `tests/frontend.py` measures keydown to the next frame in headless Chromium at the end of a
+  small, a 1 MB and a 10 MB file. It's a proxy: nothing can drive the real app from a script yet.
+- Measure release builds only.
+- **Busy machine:** check `uptime` first. Under load (other apps at full CPU), single runs vary by ±50 ms. To
+  measure a change then, build both versions, copy each `.app` to `/tmp`, and alternate single runs:
+  `measure-macos.py --runs 1 --file … /tmp/a.app`, then the same for `/tmp/b.app`. Compare the medians.
+
+## Testing
+
+- `cargo test`: file reading and writing (`document.rs`): format detection, byte-exact round trips, atomic save,
+  permissions and symlinks.
+- `tests/frontend.py`: the built frontend in Chromium with a mock in place of `__TAURI_INTERNALS__`. It records
+  every command and answers for Rust (file text, dialog choices). It covers typing, the edited flag, the open,
+  save, new and close flows with their prompts, byte-exact save, list continuation, the sidebar (listing,
+  current and missing files, open, remove, names as text), and typing latency.
+  `--screenshots DIR` saves the editor in light and dark mode.
+- Not covered automatically: native dialogs, the menu and the window title. This terminal has neither Screen
+  Recording nor Automation permission, so `screencapture` and System Events fail; don't change that without
+  asking. Check those by hand in `bun run tauri dev`.
+- What the real app writes can be checked on disk: launching with `--file` (see Measuring) updates
+  `~/Library/Application Support/markL/recent.json`. That is the user's real list: note whether it existed
+  before and restore it afterwards.
+
+## Workflow
+
+- Work through the README roadmap one item at a time, and verify each in the running app, not only in tests.
+- When behaviour, stack or commands change, update README (for users) and this file (for agents).
+- Commit only when the user asks.
