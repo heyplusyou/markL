@@ -40,7 +40,7 @@ jobs:
       - name: Verify universal app and signature
         run: |
           APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/markL.app"
-          lipo -verify_arch arm64 x86_64 "$APP/Contents/MacOS/markl"
+          lipo "$APP/Contents/MacOS/markl" -verify_arch arm64 x86_64
           codesign --verify --deep --strict --verbose=2 "$APP"
           test -f "$APP/Contents/Resources/LICENSE"
           test -f "$APP/Contents/Resources/THIRD-PARTY-NOTICES.txt"
