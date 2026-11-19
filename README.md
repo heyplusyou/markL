@@ -6,7 +6,28 @@ plain `.md` files where they already are, and keeps the files you worked on rece
 **Status:** early. You can open, edit and save markdown files (File → New, Open, Save, Save As, or
 `markl notes.md`) and reopen them from the recent-files sidebar. Inline rendering comes next.
 
-## What it does
+## Install on macOS
+
+Download the `.dmg` from [GitHub Releases](https://github.com/heyplusyou/markL/releases), open it, and drag
+**markL** into **Applications**. The universal installer works on Apple Silicon and Intel Macs.
+
+This early release is **ad-hoc signed, not Apple Developer ID signed or notarized**. After trying to open
+markL, macOS may block it: go to **System Settings → Privacy & Security → Open Anyway**, then confirm.
+Only do this for a download you trust. You do not need to disable Gatekeeper.
+
+The release includes SHA-256 checksums and links to the exact source. Windows and Linux downloads are not
+available yet. v0.1.0 is a prerelease; inline rendering, drag and drop, "Open with", and automatic reloading
+are not implemented yet.
+
+## What works today
+
+- Open, edit and save a UTF-8 markdown file, with markdown syntax highlighting and list continuation.
+- New, Open, Save and Save As; opening a file named on the command line at startup.
+- A sidebar of the last 20 opened or saved files, with missing files marked and an option to remove entries.
+- Unsaved-changes prompts and preservation of line endings and the byte order mark.
+- Atomic file saves. No account, sync service, database, vault or import step.
+
+## Planned features
 
 - Renders markdown as you type: headings, emphasis, links, lists, code and images look like the result, and the
   markdown syntax appears only where the cursor is. The file on disk stays plain markdown, exactly as you wrote it.
@@ -50,11 +71,10 @@ the end of a 10 MB file it is 11 ms. Windows and Linux targets follow once markL
 
 - **[Tauri 2](https://tauri.app)**: a native Rust app that shows its UI in the system webview (WKWebView on macOS,
   WebView2 on Windows, WebKitGTK on Linux). No bundled browser engine, so the download stays a few MB.
-- **Rust** for everything that touches the system: reading files, atomic saves, the recent-files list, watching
-  files for changes ([notify](https://crates.io/crates/notify)), and files passed on the command line or through
-  "Open with" (single-instance plugin).
+- **Rust** for everything that touches the system: reading files, atomic saves and the recent-files list.
+  Watching files for changes and "Open with" support are planned.
 - **[CodeMirror 6](https://codemirror.net)** with its markdown language package as the editor. The inline
-  rendering works like Obsidian's live preview: the document stays the markdown text, and CodeMirror decorations
+  rendering is planned to work like Obsidian's live preview: the document stays the markdown text, and CodeMirror decorations
   change how it looks. Files are saved exactly as written, and CodeMirror only draws the visible part of a
   document, which keeps large files fast.
 - **TypeScript without a UI framework**, built with Vite, with bun as the package manager. The UI is a sidebar and
@@ -82,6 +102,30 @@ bun run fixtures                     # test files of 100 KB, 1 MB and 10 MB in b
 bun run test                         # frontend tests (Python Playwright, Chromium) and Rust tests
 ```
 
+For frontend tests, install `playwright` in a Python environment and run `python3 -m playwright install chromium`.
+
+### Building the Mac installer
+
+```sh
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+bun install --frozen-lockfile
+bun run release:mac
+```
+
+The `.dmg` is in `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`. It contains both Mac
+architectures and an ad-hoc signature; no Apple account, signing secrets or notarization are required to build.
+The GPL license and third-party notices are included inside `markL.app/Contents/Resources/`.
+
+Dependency licenses are checked against both lockfiles before bundling. After changing dependencies, run
+`bun run licenses`, review `THIRD-PARTY-NOTICES.txt`, and commit it with the lockfiles. Refreshing notices needs
+Cargo, installed frontend dependencies and network access to upstream license files.
+
+Tests run on macOS and Windows in GitHub Actions. To prepare another release, keep the versions in
+`package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` in sync, commit, then push a `vX.Y.Z` tag.
+The release workflow tests both platforms, builds and verifies the universal Mac app, and creates a **draft
+prerelease** with the installer, checksums and matching source archive. Review and publish it on GitHub.
+Windows CI is not a replacement for native UI and performance testing before offering Windows downloads.
+
 ## Roadmap
 
 1. ~~Skeleton: a Tauri app with one window, measured on macOS~~ (done). The Windows measurement is still open
@@ -93,3 +137,12 @@ bun run test                         # frontend tests (Python Playwright, Chromi
    startup works)
 7. Reload on external changes
 8. Packages for macOS (signed, notarized), Windows and Linux
+
+## License
+
+Copyright (C) 2026 Sebastian EC.
+
+markL is free software under the [GNU General Public License, version 3 only](LICENSE)
+(`GPL-3.0-only`). You may use, modify and redistribute it under that license. It is provided **without any
+warranty**. Dependencies retain their own licenses; see [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).
+Contributions are accepted under the same GPL-3.0-only license.

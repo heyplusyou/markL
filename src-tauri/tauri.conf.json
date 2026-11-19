@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "bun run licenses:check && bun run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -29,6 +29,18 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "copyright": "Copyright (C) 2026 Sebastian EC",
+    "license": "GPL-3.0-only",
+    "licenseFile": "../LICENSE",
+    "homepage": "https://github.com/heyplusyou/markL",
+    "shortDescription": "A lightweight markdown editor",
+    "resources": {
+      "../LICENSE": "LICENSE",
+      "../THIRD-PARTY-NOTICES.txt": "THIRD-PARTY-NOTICES.txt"
+    },
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

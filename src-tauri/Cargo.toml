@@ -2,6 +2,8 @@
 name = "markl"
 version = "0.1.0"
 description = "A lightweight markdown editor"
+license = "GPL-3.0-only"
+repository = "https://github.com/heyplusyou/markL"
 edition = "2024"
 
 [lib]

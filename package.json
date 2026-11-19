@@ -2,11 +2,15 @@
   "name": "markl",
   "private": true,
   "version": "0.1.0",
+  "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "tauri": "tauri",
+    "licenses": "python3 scripts/licenses.py",
+    "licenses:check": "python3 scripts/licenses.py --check",
+    "release:mac": "bun run tauri build --target universal-apple-darwin --bundles app,dmg",
     "measure": "python3 scripts/measure-macos.py",
     "fixtures": "python3 scripts/make-fixtures.py",
     "test": "bun run build && python3 tests/frontend.py && cd src-tauri && cargo test"

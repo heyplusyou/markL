@@ -1,0 +1,84 @@
+name: Mac release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.5
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 scripts/check-release.py "$RELEASE_TAG"
+      - name: Install Rust targets
+        run: |
+          rustup toolchain install stable --profile minimal --no-self-update
+          rustup default stable
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - run: bun install --frozen-lockfile
+      - name: Build installer
+        run: bun run release:mac
+      - name: Verify universal app and signature
+        run: |
+          APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/markL.app"
+          lipo -verify_arch arm64 x86_64 "$APP/Contents/MacOS/markl"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          test -f "$APP/Contents/Resources/LICENSE"
+          test -f "$APP/Contents/Resources/THIRD-PARTY-NOTICES.txt"
+      - name: Prepare downloads
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mkdir release-assets
+          cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg release-assets/
+          git archive --format=tar.gz --prefix="markL-${RELEASE_TAG}/" HEAD > "release-assets/markL-${RELEASE_TAG}-source.tar.gz"
+          cp LICENSE THIRD-PARTY-NOTICES.txt release-assets/
+          cd release-assets
+          shasum -a 256 *.dmg *.tar.gz LICENSE THIRD-PARTY-NOTICES.txt > SHA256SUMS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mac-release
+          path: release-assets/
+          if-no-files-found: error
+
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: mac-release
+          path: release-assets
+      - name: Create draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --verify-tag --draft --prerelease \
+            --title "markL $RELEASE_TAG" \
+            --notes-file .github/RELEASE_NOTES.md
