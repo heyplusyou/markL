@@ -67,6 +67,13 @@ Measured on an Apple M2 (24 GB), macOS 26.2, warm launches, median of 5 runs, on
 Chromium with the editor alone (`tests/frontend.py`), because the real app can't yet be driven from a script; at
 the end of a 10 MB file it is 11 ms. Windows and Linux targets follow once markL has been measured there.
 
+Packaging check (2026-11-19): the universal app is 9.1 MiB, including both architectures and license notices;
+the DMG is 4.0 MiB. In three alternating warm runs on the current machine, with a 100 KB file and a short
+2-second idle wait, the old/native build versus the universal build measured 494/523 ms to the window,
+646/662 ms to editable, and 87.8/91.0 MiB total memory (medians). Both builds missed the original targets in
+this environment; these are smoke-check results, not a replacement for the original idle-10-second benchmark
+or a cold-boot measurement. Runtime code and frontend bundle are unchanged by packaging.
+
 ## Tech stack
 
 - **[Tauri 2](https://tauri.app)**: a native Rust app that shows its UI in the system webview (WKWebView on macOS,
