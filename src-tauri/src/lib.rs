@@ -1,5 +1,7 @@
 mod document;
+mod images;
 mod menu;
+mod open_requests;
 mod recent;
 
 use std::path::{Path, PathBuf};
@@ -11,8 +13,8 @@ use serde::Serialize;
 use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::window::Color;
 use tauri::{
-    AppHandle, Emitter, Manager, Runtime, State, Theme, WebviewWindow, WebviewWindowBuilder,
-    WindowEvent,
+    AppHandle, DragDropEvent, Emitter, Manager, State, Theme, WebviewEvent, WebviewWindow,
+    WebviewWindowBuilder, WindowEvent,
 };
 
 use document::Format;
@@ -36,10 +38,12 @@ struct Document {
     path: Option<PathBuf>,
     format: Format,
     edited: bool,
+    image_generation: u64,
 }
 
 type Doc = Mutex<Document>;
 type RecentList = Mutex<Recent>;
+type PendingOpen = Mutex<open_requests::Pending>;
 
 /// A recent file as the sidebar shows it.
 #[derive(Serialize)]
@@ -78,10 +82,6 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-fn is_edited<R: Runtime>(app: &AppHandle<R>) -> bool {
-    lock(&app.state::<Doc>()).edited
-}
-
 fn file_name(path: &Path) -> String {
     path.file_name().map_or_else(
         || path.display().to_string(),
@@ -103,12 +103,48 @@ fn background(theme: Theme) -> Color {
     }
 }
 
-/// The file named on the command line (`markl notes.md`), if any.
-fn startup_path() -> Option<PathBuf> {
-    let arg = std::env::args_os()
-        .skip(1)
-        .find(|arg| !arg.to_string_lossy().starts_with('-'))?;
-    std::path::absolute(arg).ok()
+fn show_main(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+fn queue_open(app: &AppHandle, path: PathBuf) {
+    let Ok(path) = std::path::absolute(path) else {
+        return;
+    };
+    let current = lock(&app.state::<Doc>()).path.clone();
+    let notify = if current.as_deref() == Some(path.as_path()) {
+        false
+    } else {
+        let state = app.state::<PendingOpen>();
+        let mut pending = lock(&state);
+        pending.push(path) && pending.ready
+    };
+    show_main(app);
+    if notify {
+        let _ = app.emit("open-request", ());
+    }
+}
+
+fn drag_drop(app: &AppHandle, event: &DragDropEvent) {
+    match event {
+        DragDropEvent::Enter { paths, .. } => {
+            let _ = app.emit("file-drag", !paths.is_empty());
+        }
+        DragDropEvent::Drop { paths, .. } => {
+            let _ = app.emit("file-drag", false);
+            if let Some(path) = paths.first() {
+                queue_open(app, path.clone());
+            }
+        }
+        DragDropEvent::Leave => {
+            let _ = app.emit("file-drag", false);
+        }
+        _ => {}
+    }
 }
 
 /// Runs `dialog` on the main thread, where macOS needs native dialogs, and waits for it without
@@ -160,12 +196,17 @@ async fn open_path(
     };
     lock(recent).add(&path);
     let mut doc = lock(doc);
+    let image_generation = doc.image_generation.wrapping_add(1);
     *doc = Document {
         path: Some(path),
         format,
         edited: false,
+        image_generation,
     };
     let _ = window.set_title(&doc.title());
+    if std::env::var_os("MARKL_TIMING").is_some() {
+        eprintln!("markl-open loaded");
+    }
     Ok(Response::new(text))
 }
 
@@ -208,6 +249,9 @@ async fn write(
     }
     lock(recent).add(&path);
     let mut doc = lock(doc);
+    if doc.path.as_ref() != Some(&path) {
+        doc.image_generation = doc.image_generation.wrapping_add(1);
+    }
     doc.path = Some(path);
     let _ = window.set_title(&doc.title());
     Ok(())
@@ -223,7 +267,12 @@ fn text_of(request: &Request<'_>) -> Result<Vec<u8>, String> {
 
 /// Called by the frontend once the editor is ready to type in.
 #[tauri::command]
-fn ready() {
+fn ready(app: AppHandle, pending: State<'_, PendingOpen>) {
+    let notify = {
+        let mut pending = lock(&pending);
+        pending.ready = true;
+        pending.has_requests()
+    };
     if std::env::var_os("MARKL_TIMING").is_some() {
         let started = STARTED_MS.get().copied().unwrap_or_default();
         let shown = SHOWN_MS.get().copied().unwrap_or_default();
@@ -232,6 +281,15 @@ fn ready() {
             now_ms()
         );
     }
+    if notify {
+        let _ = app.emit("open-request", ());
+    }
+}
+
+/// A cache key for image URLs, not a filesystem path.
+#[tauri::command]
+fn image_context(doc: State<'_, Doc>) -> u64 {
+    lock(&doc).image_generation
 }
 
 #[tauri::command]
@@ -239,9 +297,40 @@ async fn open_startup_file(
     window: WebviewWindow,
     doc: State<'_, Doc>,
     recent: State<'_, RecentList>,
+    pending: State<'_, PendingOpen>,
 ) -> Result<Response, String> {
-    let path = startup_path().ok_or("no file on the command line")?;
+    let path = {
+        let mut pending = lock(&pending);
+        let id = pending.next(None).ok_or("no startup file")?;
+        pending.take(id).ok_or("no startup file")?
+    };
     open_path(&window, &doc, &recent, path).await
+}
+
+#[tauri::command]
+fn next_open_request(doc: State<'_, Doc>, pending: State<'_, PendingOpen>) -> Option<u32> {
+    let current = lock(&doc).path.clone();
+    lock(&pending).next(current.as_deref())
+}
+
+#[tauri::command]
+async fn open_pending(
+    window: WebviewWindow,
+    doc: State<'_, Doc>,
+    recent: State<'_, RecentList>,
+    pending: State<'_, PendingOpen>,
+    id: u32,
+) -> Result<Response, String> {
+    let path = lock(&pending).take(id).ok_or("no such pending file")?;
+    open_path(&window, &doc, &recent, path).await
+}
+
+#[tauri::command]
+fn cancel_pending_open(pending: State<'_, PendingOpen>, id: u32) -> Result<(), String> {
+    lock(&pending)
+        .cancel(id)
+        .then_some(())
+        .ok_or("no such pending file".into())
 }
 
 #[tauri::command]
@@ -344,7 +433,10 @@ async fn save_as(
 #[tauri::command]
 fn new_file(window: WebviewWindow, doc: State<'_, Doc>) {
     let mut doc = lock(&doc);
-    *doc = Document::default();
+    *doc = Document {
+        image_generation: doc.image_generation.wrapping_add(1),
+        ..Document::default()
+    };
     let _ = window.set_title(&doc.title());
 }
 
@@ -395,12 +487,40 @@ fn quit(app: AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     STARTED_MS.get_or_init(now_ms);
-    tauri::Builder::default()
+    let mut pending = open_requests::Pending::default();
+    if let Ok(cwd) = std::env::current_dir()
+        && let Some(path) = open_requests::argument_path(std::env::args_os(), &cwd)
+    {
+        pending.push(path);
+    }
+    let builder = tauri::Builder::default();
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+        if let Some(path) =
+            open_requests::argument_path(args.into_iter().map(Into::into), Path::new(&cwd))
+        {
+            queue_open(app, path);
+        } else {
+            show_main(app);
+        }
+    }));
+    builder
         .manage(Doc::default())
+        .manage(PendingOpen::new(pending))
+        .register_asynchronous_uri_scheme_protocol("markl-image", |context, request, responder| {
+            let app = context.app_handle();
+            let state = app.state::<Doc>();
+            let (path, generation) = {
+                let doc = lock(&state);
+                (doc.path.clone(), doc.image_generation)
+            };
+            tauri::async_runtime::spawn_blocking(move || {
+                responder.respond(images::response(path.as_deref(), generation, &request));
+            });
+        })
         .menu(menu::build)
-        // Closing or quitting with unsaved changes goes through the frontend, which asks first.
+        // The frontend serializes close with open/save requests and owns the text.
         .on_menu_event(|app, event| match event.id().as_ref() {
-            "quit" if !is_edited(app) => app.exit(0),
             "quit" => {
                 let _ = app.emit("command", "close");
             }
@@ -408,12 +528,20 @@ pub fn run() {
                 let _ = app.emit("command", id);
             }
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event
-                && is_edited(window.app_handle())
-            {
+        .on_window_event(|window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
                 let _ = window.emit("command", "close");
+            }
+            WindowEvent::DragDrop(event) => drag_drop(window.app_handle(), event),
+            WindowEvent::Focused(false) => {
+                let _ = window.emit("file-drag", false);
+            }
+            _ => {}
+        })
+        .on_webview_event(|webview, event| {
+            if let WebviewEvent::DragDrop(event) = event {
+                drag_drop(webview.app_handle(), event);
             }
         })
         .setup(|app| {
@@ -436,7 +564,11 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             ready,
+            image_context,
             open_startup_file,
+            next_open_request,
+            open_pending,
+            cancel_pending_open,
             open_file,
             open_recent,
             recent_files,
@@ -448,6 +580,20 @@ pub fn run() {
             ask_save_changes,
             quit,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running markL");
+        .build(tauri::generate_context!())
+        .expect("error while building markL")
+        .run(|app, event| {
+            #[cfg(target_os = "macos")]
+            match event {
+                tauri::RunEvent::Opened { urls } => {
+                    if let Some(path) = urls.into_iter().find_map(|url| url.to_file_path().ok()) {
+                        queue_open(app, path);
+                    }
+                }
+                tauri::RunEvent::Reopen { .. } => show_main(app),
+                _ => {}
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

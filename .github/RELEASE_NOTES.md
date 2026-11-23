@@ -1,9 +1,15 @@
-## Early macOS release
+## markL v0.2.0 — live Markdown and native file opening
 
-A small, fast markdown editor. This version supports opening, editing and saving UTF-8 files, a recent-files
-sidebar, markdown syntax highlighting and unsaved-changes prompts.
+A small Markdown editor for macOS. This early prerelease adds:
 
-Inline rendering, drag and drop, "Open with" and external-change reloading are **not implemented yet**.
+- Live inline headings, emphasis, links, lists, task lists, quotes and rules, with source revealed while editing.
+- Undoable task checkboxes, lazy code highlighting, scoped local images and rendered Markdown tables.
+- Drag and drop, macOS "Open with", and command-line files forwarded to the already-running window.
+- Serialized document operations and unsaved-changes prompts that protect the buffer during external opens.
+
+New/Open/Save/Save As, byte-preserving UTF-8 saves and the recent-files sidebar remain included.
+External-change reloading is **not implemented yet**. A physical Finder drag gesture still needs manual
+verification; automated native tests cover cold/warm "Open with" and single-instance CLI forwarding.
 Windows and Linux installers are not included. Automated Windows checks do not certify native UI or performance.
 
 ### Install
@@ -16,11 +22,14 @@ Windows and Linux installers are not included. Automated Windows checks do not c
 
 ### Verification
 
-The universal app's signature and both architectures were checked, the DMG was mounted and verified, and the
-packaged app opened a 100 KB file successfully. Download size: about 4 MiB; installed app: about 9.1 MiB.
-In a short warm-launch check on the current machine, median time to editable was 662 ms and memory after
-2 seconds was 91 MiB, versus 646 ms and 88 MiB for the previous native build. Both exceeded the original
-performance targets in this environment. Cold-boot and native Windows UI/performance checks remain outstanding.
+The release workflow tests on macOS and Windows and checks both universal Mac architectures, the ad-hoc
+signature and bundled licenses. The installer is verified locally before this draft is published.
+
+The native Apple Silicon development build measured 605 ms to editable, 75.1 MiB total memory with a
+100 KB file after 10 seconds idle, and 4.77 MiB installed (five warm runs). These are not universal-installer
+measurements. Startup still exceeds the original target in this environment; memory and native app size
+remain within budget. Chromium's 1 MB typing median was 5.4 ms. Cold-boot and native Windows UI/performance
+checks remain outstanding. See the README for measurement methods and comparisons.
 
 ### Checksums, license and source
 

@@ -1,6 +1,6 @@
 markL third-party notices
-bun.lock sha256: 19bcea905502a014adf11d79f6fcd38ef6394970211a2b0c310db598b193d0bb
-src-tauri/Cargo.lock sha256: 05917a25b62cd230c90baf1c3e899328bdf06aa3c6fd185efb422370572f75ed
+bun.lock sha256: 7cfe875428c1a8aa61faa6d2745dcf0ce8c5b4018b2dc766f29c0e6b3f23b86f
+src-tauri/Cargo.lock sha256: eeb9412fe8605acff642fa55ef8304011df7552e559da6c4af1e7154d52ca922
 
 Licenses for the universal macOS distribution, including build dependencies.
 Frontend runtime dependencies and the locked Mac Cargo dependency graph are listed below.
@@ -1149,6 +1149,13 @@ Source: https://crates.io/api/v1/crates/tauri-macros/2.7.4/download
   LICENSE-APACHE-2.0: L54
   LICENSE-MIT: L131
 
+Rust: tauri-plugin-single-instance 2.5.5
+License: Apache-2.0 OR MIT
+Source: https://crates.io/api/v1/crates/tauri-plugin-single-instance/2.5.5/download
+  LICENSE.spdx: L132
+  LICENSE_APACHE-2.0: L54
+  LICENSE_MIT: L133
+
 Rust: tauri-runtime 2.12.2
 License: Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/tauri-runtime/2.12.2/download
@@ -1170,13 +1177,13 @@ Source: https://crates.io/api/v1/crates/tauri-utils/2.10.2/download
 Rust: tauri-winres 0.3.7
 License: MIT
 Source: https://crates.io/api/v1/crates/tauri-winres/0.3.7/download
-  LICENSE: L132
+  LICENSE: L134
 
 Rust: tendril 0.5.1
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/tendril/0.5.1/download
   LICENSE-APACHE: L9
-  LICENSE-MIT: L133
+  LICENSE-MIT: L135
 
 Rust: thiserror 2.0.21
 License: MIT OR Apache-2.0
@@ -1194,19 +1201,19 @@ Rust: time 0.3.55
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/time/0.3.55/download
   LICENSE-Apache: L54
-  LICENSE-MIT: L134
+  LICENSE-MIT: L136
 
 Rust: time-core 0.1.9
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/time-core/0.1.9/download
   LICENSE-Apache: L54
-  LICENSE-MIT: L134
+  LICENSE-MIT: L136
 
 Rust: time-macros 0.2.32
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/time-macros/0.2.32/download
   LICENSE-Apache: L54
-  LICENSE-MIT: L134
+  LICENSE-MIT: L136
 
 Rust: tinystr 0.8.5
 License: Unicode-3.0
@@ -1218,12 +1225,12 @@ License: Zlib OR Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/tinyvec/1.13.3/download
   LICENSE-APACHE.md: L51
   LICENSE-MIT.md: L37
-  LICENSE-ZLIB.md: L135
+  LICENSE-ZLIB.md: L137
 
 Rust: tokio 1.54.1
 License: MIT
 Source: https://crates.io/api/v1/crates/tokio/1.54.1/download
-  LICENSE: L136
+  LICENSE: L138
 
 Rust: toml 1.1.8+spec-1.1.0
 License: MIT OR Apache-2.0
@@ -1249,12 +1256,27 @@ Source: https://crates.io/api/v1/crates/toml_writer/1.1.3+spec-1.1.0/download
   LICENSE-APACHE: L110
   LICENSE-MIT: L111
 
+Rust: tracing 0.1.44
+License: MIT
+Source: https://crates.io/api/v1/crates/tracing/0.1.44/download
+  LICENSE: L139
+
+Rust: tracing-attributes 0.1.31
+License: MIT
+Source: https://crates.io/api/v1/crates/tracing-attributes/0.1.31/download
+  LICENSE: L139
+
+Rust: tracing-core 0.1.36
+License: MIT
+Source: https://crates.io/api/v1/crates/tracing-core/0.1.36/download
+  LICENSE: L139
+
 Rust: tray-icon 0.25.1
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/tray-icon/0.25.1/download
   LICENSE-APACHE: L9
   LICENSE-MIT: L91
-  LICENSE.spdx: L137
+  LICENSE.spdx: L140
 
 Rust: typeid 1.0.3
 License: MIT OR Apache-2.0
@@ -1265,16 +1287,16 @@ Source: https://crates.io/api/v1/crates/typeid/1.0.3/download
 Rust: typenum 1.20.1
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/typenum/1.20.1/download
-  LICENSE: L138
-  LICENSE-APACHE: L139
-  LICENSE-MIT: L140
+  LICENSE: L141
+  LICENSE-APACHE: L142
+  LICENSE-MIT: L143
 
 Rust: unicode-ident 1.0.27
 License: (MIT OR Apache-2.0) AND Unicode-3.0
 Source: https://crates.io/api/v1/crates/unicode-ident/1.0.27/download
   LICENSE-APACHE: L8
   LICENSE-MIT: L3
-  LICENSE-UNICODE: L141
+  LICENSE-UNICODE: L144
 
 Rust: url 2.5.8
 License: MIT OR Apache-2.0
@@ -1285,26 +1307,26 @@ Source: https://crates.io/api/v1/crates/url/2.5.8/download
 Rust: urlpattern 0.6.0
 License: MIT
 Source: https://crates.io/api/v1/crates/urlpattern/0.6.0/download
-  LICENSE: L142
+  LICENSE: L145
 
 Rust: utf8_iter 1.0.4
 License: Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/utf8_iter/1.0.4/download
-  COPYRIGHT: L143
+  COPYRIGHT: L146
   LICENSE-APACHE: L51
-  LICENSE-MIT: L144
+  LICENSE-MIT: L147
 
 Rust: uuid 1.29.0
 License: Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/uuid/1.29.0/download
   LICENSE-APACHE: L9
-  LICENSE-MIT: L145
+  LICENSE-MIT: L148
 
 Rust: version_check 0.9.5
 License: MIT/Apache-2.0
 Source: https://crates.io/api/v1/crates/version_check/0.9.5/download
   LICENSE-APACHE: L9
-  LICENSE-MIT: L146
+  LICENSE-MIT: L149
 
 Rust: walkdir 2.5.0
 License: Unlicense/MIT
@@ -1316,8 +1338,8 @@ Source: https://crates.io/api/v1/crates/walkdir/2.5.0/download
 Rust: web-time 1.1.0
 License: MIT OR Apache-2.0
 Source: https://crates.io/api/v1/crates/web-time/1.1.0/download
-  LICENSE-APACHE: L147
-  LICENSE-MIT: L148
+  LICENSE-APACHE: L150
+  LICENSE-MIT: L151
 
 Rust: web_atoms 0.2.6
 License: MIT OR Apache-2.0
@@ -1329,13 +1351,13 @@ Rust: window-vibrancy 0.8.1
 License: Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/window-vibrancy/0.8.1/download
   LICENSE-APACHE: L9
-  LICENSE-MIT: L149
-  LICENSE.spdx: L150
+  LICENSE-MIT: L152
+  LICENSE.spdx: L153
 
 Rust: winnow 1.0.4
 License: MIT
 Source: https://crates.io/api/v1/crates/winnow/1.0.4/download
-  LICENSE-MIT: L151
+  LICENSE-MIT: L154
 
 Rust: writeable 0.6.4
 License: Unicode-3.0
@@ -1346,8 +1368,8 @@ Rust: wry 0.57.1
 License: Apache-2.0 OR MIT
 Source: https://crates.io/api/v1/crates/wry/0.57.1/download
   LICENSE-APACHE: L9
-  LICENSE-MIT: L152
-  LICENSE.spdx: L153
+  LICENSE-MIT: L155
+  LICENSE.spdx: L156
 
 Rust: yoke 0.8.4
 License: Unicode-3.0
@@ -1387,7 +1409,7 @@ Source: https://crates.io/api/v1/crates/zerovec-derive/0.11.7/download
 Rust: zlib-rs 0.6.8
 License: Zlib
 Source: https://crates.io/api/v1/crates/zlib-rs/0.6.8/download
-  LICENSE: L154
+  LICENSE: L157
 
 Rust: zmij 1.0.23
 License: MIT
@@ -1397,119 +1419,149 @@ Source: https://crates.io/api/v1/crates/zmij/1.0.23/download
 npm: @codemirror/autocomplete 6.20.4
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/autocomplete/-/autocomplete-6.20.4.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/commands 6.11.1
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/commands/-/commands-6.11.1.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/lang-css 6.3.1
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/lang-css/-/lang-css-6.3.1.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/lang-html 6.4.12
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/lang-html/-/lang-html-6.4.12.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/lang-javascript 6.2.5
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/lang-javascript/-/lang-javascript-6.2.5.tgz
-  LICENSE: L155
+  LICENSE: L158
+
+npm: @codemirror/lang-json 6.0.2
+License: MIT
+Source: https://registry.npmjs.org/@codemirror/lang-json/-/lang-json-6.0.2.tgz
+  LICENSE: L158
 
 npm: @codemirror/lang-markdown 6.5.2
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/lang-markdown/-/lang-markdown-6.5.2.tgz
-  LICENSE: L155
+  LICENSE: L158
+
+npm: @codemirror/lang-python 6.2.1
+License: MIT
+Source: https://registry.npmjs.org/@codemirror/lang-python/-/lang-python-6.2.1.tgz
+  LICENSE: L158
+
+npm: @codemirror/lang-rust 6.0.2
+License: MIT
+Source: https://registry.npmjs.org/@codemirror/lang-rust/-/lang-rust-6.0.2.tgz
+  LICENSE: L158
 
 npm: @codemirror/language 6.13.1
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/language/-/language-6.13.1.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/lint 6.9.7
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/lint/-/lint-6.9.7.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/state 6.7.6
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/state/-/state-6.7.6.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/streamparser 6.0.0
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/streamparser/-/streamparser-6.0.0.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @codemirror/view 6.43.15
 License: MIT
 Source: https://registry.npmjs.org/@codemirror/view/-/view-6.43.15.tgz
-  LICENSE: L155
+  LICENSE: L158
 
 npm: @lezer/common 1.5.4
 License: MIT
 Source: https://registry.npmjs.org/@lezer/common/-/common-1.5.4.tgz
-  LICENSE: L156
+  LICENSE: L159
 
 npm: @lezer/css 1.3.9
 License: MIT
 Source: https://registry.npmjs.org/@lezer/css/-/css-1.3.9.tgz
-  LICENSE: L156
+  LICENSE: L159
 
 npm: @lezer/highlight 1.2.5
 License: MIT
 Source: https://registry.npmjs.org/@lezer/highlight/-/highlight-1.2.5.tgz
-  LICENSE: L156
+  LICENSE: L159
 
 npm: @lezer/html 1.3.13
 License: MIT
 Source: https://registry.npmjs.org/@lezer/html/-/html-1.3.13.tgz
-  LICENSE: L156
+  LICENSE: L159
 
 npm: @lezer/javascript 1.5.6
 License: MIT
 Source: https://registry.npmjs.org/@lezer/javascript/-/javascript-1.5.6.tgz
-  LICENSE: L156
+  LICENSE: L159
+
+npm: @lezer/json 1.0.3
+License: MIT
+Source: https://registry.npmjs.org/@lezer/json/-/json-1.0.3.tgz
+  LICENSE: L160
 
 npm: @lezer/lr 1.4.11
 License: MIT
 Source: https://registry.npmjs.org/@lezer/lr/-/lr-1.4.11.tgz
-  LICENSE: L156
+  LICENSE: L159
 
 npm: @lezer/markdown 1.8.1
 License: MIT
 Source: https://registry.npmjs.org/@lezer/markdown/-/markdown-1.8.1.tgz
-  LICENSE: L157
+  LICENSE: L161
+
+npm: @lezer/python 1.1.19
+License: MIT
+Source: https://registry.npmjs.org/@lezer/python/-/python-1.1.19.tgz
+  LICENSE: L161
+
+npm: @lezer/rust 1.0.3
+License: MIT
+Source: https://registry.npmjs.org/@lezer/rust/-/rust-1.0.3.tgz
+  LICENSE: L159
 
 npm: @marijn/find-cluster-break 1.0.4
 License: MIT
 Source: https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.4.tgz
-  LICENSE: L158
+  LICENSE: L162
 
 npm: @tauri-apps/api 2.12.4
 License: Apache-2.0 OR MIT
 Source: https://registry.npmjs.org/@tauri-apps/api/-/api-2.12.4.tgz
   LICENSE-APACHE-2.0: L54
   LICENSE-MIT: L131
-  LICENSE.spdx: L159
+  LICENSE.spdx: L163
 
 npm: crelt 1.0.7
 License: MIT
 Source: https://registry.npmjs.org/crelt/-/crelt-1.0.7.tgz
-  LICENSE: L160
+  LICENSE: L164
 
 npm: style-mod 4.1.4
 License: MIT
 Source: https://registry.npmjs.org/style-mod/-/style-mod-4.1.4.tgz
-  LICENSE: L161
+  LICENSE: L165
 
 npm: w3c-keyname 2.2.8
 License: MIT
 Source: https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz
-  LICENSE: L162
+  LICENSE: L166
 
 ===== L1 =====
 Copyright (C) Jonas Schievink <jonasschievink@gmail.com>
@@ -10250,6 +10302,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ===== L132 =====
+SPDXVersion: SPDX-2.1
+DataLicense: CC0-1.0
+PackageName: tauri
+DataFormat: SPDXRef-1
+PackageSupplier: Organization: The Tauri Programme in the Commons Conservancy
+PackageHomePage: https://tauri.app
+PackageLicenseDeclared: Apache-2.0
+PackageLicenseDeclared: MIT
+PackageCopyrightText: 2019-2022, The Tauri Programme in the Commons Conservancy
+PackageSummary: <text>Tauri is a rust project that enables developers to make secure
+and small desktop applications using a web frontend.
+                </text>
+PackageComment: <text>The package includes the following libraries; see
+Relationship information.
+                </text>
+Created: 2019-05-20T09:00:00Z
+PackageDownloadLocation: git://github.com/tauri-apps/tauri
+PackageDownloadLocation: git+https://github.com/tauri-apps/tauri.git
+PackageDownloadLocation: git+ssh://github.com/tauri-apps/tauri.git
+Creator: Person: Daniel Thompson-Yvetot
+
+===== L133 =====
+MIT License
+
+Copyright (c) 2017 - Present The Tauri Programme in the Commons Conservancy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== L134 =====
 The MIT License (MIT)
 
 Copyright (c) 2023 - Present Tauri Apps Contributors
@@ -10279,7 +10376,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-===== L133 =====
+===== L135 =====
 Copyright (c) 2015 Keegan McAllister
 
 Permission is hereby granted, free of charge, to any
@@ -10306,7 +10403,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-===== L134 =====
+===== L136 =====
 Copyright (c) Jacob Pratt et al.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -10327,7 +10424,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L135 =====
+===== L137 =====
 Copyright (c) 2019 Daniel "Lokathor" Gee.
 
 This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
@@ -10340,7 +10437,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 
 3. This notice may not be removed or altered from any source distribution.
 
-===== L136 =====
+===== L138 =====
 MIT License
 
 Copyright (c) Tokio Contributors
@@ -10363,7 +10460,34 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L137 =====
+===== L139 =====
+Copyright (c) 2019 Tokio Contributors
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+===== L140 =====
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 PackageName: tray-icon
@@ -10384,10 +10508,10 @@ PackageDownloadLocation: git+https://github.com/tauri-apps/tray-icon.git
 PackageDownloadLocation: git+ssh://github.com/tauri-apps/tray-icon.git
 Creator: Person: Daniel Thompson-Yvetot
 
-===== L138 =====
+===== L141 =====
 MIT OR Apache-2.0
 
-===== L139 =====
+===== L142 =====
 Apache License
                         Version 2.0, January 2004
                      http://www.apache.org/licenses/
@@ -10590,7 +10714,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-===== L140 =====
+===== L143 =====
 The MIT License (MIT)
 
 Copyright (c) 2014 Paho Lurie-Gregg
@@ -10613,7 +10737,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L141 =====
+===== L144 =====
 UNICODE LICENSE V3
 
 COPYRIGHT AND PERMISSION NOTICE
@@ -10654,7 +10778,7 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in these Data Files or Software without prior written
 authorization of the copyright holder.
 
-===== L142 =====
+===== L145 =====
 MIT License
 
 Copyright (c) 2021 the Deno authors
@@ -10677,7 +10801,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L143 =====
+===== L146 =====
 Copyright Mozilla Foundation
 
 Licensed under the Apache License (Version 2.0), or the MIT license,
@@ -10721,7 +10845,7 @@ licensed under the Apache License, Version 2.0 <LICENSE-APACHE> or
 <http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
 <LICENSE-MIT> or <http://opensource.org/licenses/MIT>, at your option.
 
-===== L144 =====
+===== L147 =====
 Copyright Mozilla Foundation
 
 Permission is hereby granted, free of charge, to any
@@ -10748,7 +10872,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-===== L145 =====
+===== L148 =====
 Copyright (c) 2014 The Rust Project Developers
 Copyright (c) 2018 Ashley Mannix, Christopher Armstrong, Dylan DPC, Hunar Roop Kahlon
 
@@ -10776,7 +10900,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-===== L146 =====
+===== L149 =====
 The MIT License (MIT)
 Copyright (c) 2017-2018 Sergio Benitez
 
@@ -10797,7 +10921,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-===== L147 =====
+===== L150 =====
 Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -11000,7 +11124,7 @@ Apache License
    See the License for the specific language governing permissions and
    limitations under the License.
 
-===== L148 =====
+===== L151 =====
 MIT License
 
 Copyright (c) 2023 dAxpeDDa
@@ -11023,7 +11147,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L149 =====
+===== L152 =====
 MIT License
 
 Copyright (c) 2020-2022 Tauri Programme within The Commons Conservancy
@@ -11046,7 +11170,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L150 =====
+===== L153 =====
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 PackageName: window-vibrancy
@@ -11067,7 +11191,7 @@ PackageDownloadLocation: git+https://github.com/tauri-apps/window-vibrancy.git
 PackageDownloadLocation: git+ssh://github.com/tauri-apps/window-vibrancy.git
 Creator: Person: Daniel Thompson-Yvetot
 
-===== L151 =====
+===== L154 =====
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 "Software"), to deal in the Software without restriction, including
@@ -11087,7 +11211,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-===== L152 =====
+===== L155 =====
 MIT License
 
 Copyright (c) 2020-2023 Ngo Iok Ui & Tauri Programme within The Commons Conservancy
@@ -11110,7 +11234,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== L153 =====
+===== L156 =====
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 PackageName: wry
@@ -11132,7 +11256,7 @@ PackageDownloadLocation: git+https://github.com/tauri-apps/wry.git
 PackageDownloadLocation: git+ssh://github.com/tauri-apps/wry.git
 Creator: Person: Daniel Thompson-Yvetot
 
-===== L154 =====
+===== L157 =====
 (C) 2024 Trifecta Tech Foundation 
 
 This software is provided 'as-is', without any express or implied
@@ -11153,7 +11277,7 @@ freely, subject to the following restrictions:
 
 3. This notice may not be removed or altered from any source distribution.
 
-===== L155 =====
+===== L158 =====
 MIT License
 
 Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -11176,7 +11300,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L156 =====
+===== L159 =====
 MIT License
 
 Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -11199,7 +11323,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L157 =====
+===== L160 =====
+MIT License
+
+Copyright (C) 2020 by Marijn Haverbeke <marijn@haverbeke.berlin>, Arun Srinivasan <rulfzid@gmail.com>, and others
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== L161 =====
 MIT License
 
 Copyright (C) 2020 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -11222,7 +11369,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L158 =====
+===== L162 =====
 MIT License
 
 Copyright (C) 2024 by Marijn Haverbeke <marijn@haverbeke.berlin>
@@ -11245,7 +11392,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L159 =====
+===== L163 =====
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 PackageName: tauri
@@ -11267,7 +11414,7 @@ PackageDownloadLocation: git+https://github.com/tauri-apps/tauri.git
 PackageDownloadLocation: git+ssh://github.com/tauri-apps/tauri.git
 Creator: Person: Daniel Thompson-Yvetot
 
-===== L160 =====
+===== L164 =====
 Copyright (C) 2020 by Marijn Haverbeke <marijn@haverbeke.berlin>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11288,7 +11435,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L161 =====
+===== L165 =====
 Copyright (C) 2018 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11309,7 +11456,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-===== L162 =====
+===== L166 =====
 Copyright (C) 2016 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -4,7 +4,9 @@ A lightweight markdown editor for macOS, Windows and Linux. It starts instantly,
 plain `.md` files where they already are, and keeps the files you worked on recently in a sidebar.
 
 **Status:** early. You can open, edit and save markdown files (File → New, Open, Save, Save As, or
-`markl notes.md`) and reopen them from the recent-files sidebar. Inline rendering comes next.
+`markl notes.md`) and reopen them from the recent-files sidebar. Current source builds also render basic
+markdown inline, including code blocks, local images and tables, revealing the source while editing.
+Version 0.2.0 also supports drag and drop, "Open with", and forwarding files to the already-running window.
 
 ## Install on macOS
 
@@ -16,29 +18,40 @@ markL, macOS may block it: go to **System Settings → Privacy & Security → Op
 Only do this for a download you trust. You do not need to disable Gatekeeper.
 
 The release includes SHA-256 checksums and links to the exact source. Windows and Linux downloads are not
-available yet. v0.1.0 is a prerelease; inline rendering, drag and drop, "Open with", and automatic reloading
-are not implemented yet.
+available yet. Version 0.2.0 is an early prerelease with the inline rendering and external file-opening
+features described below; v0.1.0 does not include them. Automatic reloading is still planned.
 
 ## What works today
 
 - Open, edit and save a UTF-8 markdown file, with markdown syntax highlighting and list continuation.
-- New, Open, Save and Save As; opening a file named on the command line at startup.
+- Live inline rendering of headings, bold/italic/strikethrough text, links, inline code, ordered and unordered
+  lists, task lists, block quotes and horizontal rules. Markup reappears on the cursor's line and on selected
+  lines, so normal markdown editing still works. The file text is never rewritten for rendering.
+- Click a task checkbox (or focus it and press Space) to toggle its `[ ]`/`[x]` marker. Each toggle can be undone.
+  Inline links display their label and show their destination on hover or while editing; they do not navigate
+  away. Reference-style links keep their source for now.
+- Fenced code blocks have a monospace surface, a language label, and lazy syntax highlighting for JavaScript,
+  TypeScript/JSX/TSX, JSON, CSS, HTML, Python and Rust. Unknown languages remain plain code. Editing a block
+  reveals its fences; highlighting never executes the code.
+- Local PNG, JPEG, GIF, WebP and AVIF images display inline with alt text. Save the document first; image URLs
+  must be relative to its folder (subfolders are allowed). Missing or unsupported images show a fallback.
+  Remote/data URLs, absolute paths, hidden files, traversal, symlinks escaping that folder, SVG/HTML and files
+  over 16 MiB are refused. Save As refreshes the image scope for the new folder.
+- Standalone Markdown tables render as real tables, including column alignment, empty cells and basic inline
+  formatting. Click a cell, or focus the table and press Enter, to edit its original Markdown. Large or nested
+  tables retain source: preview is capped at 100 rows, 32 columns, 1,024 cells and 32 KiB per table.
+- New, Open, Save and Save As; opening a file named on the command line at startup or while markL is running.
+- Drop a file onto the window or use the system's "Open with". Markdown and text associations are registered
+  as alternatives, not replacements for your default app. markL opens one file per drop, system open event
+  or CLI invocation (the first file if several are supplied), in its existing window.
 - A sidebar of the last 20 opened or saved files, with missing files marked and an option to remove entries.
 - Unsaved-changes prompts and preservation of line endings and the byte order mark.
+  External opens use the same Save / Don't Save / Cancel choices. Cancel clears the queued burst; cancelled
+  saves and failed reads keep the current text. Editing pauses during file operations to prevent races.
 - Atomic file saves. No account, sync service, database, vault or import step.
 
 ## Planned features
 
-- Renders markdown as you type: headings, emphasis, links, lists, code and images look like the result, and the
-  markdown syntax appears only where the cursor is. The file on disk stays plain markdown, exactly as you wrote it.
-- Stays fast with very large files.
-- Shows the last 20 files you opened or saved in a sidebar, most recent first. Click one to open it. Files that
-  were moved or deleted are crossed out, and the × next to a file removes it from the list.
-- Opens files from the file dialog, by drag and drop, from the command line (`markl notes.md`) and through the
-  system's "Open with".
-- Saves to the file itself. No database, no vault, no import step: markL only remembers which files you opened.
-- Asks before closing or replacing a document with unsaved changes.
-- Opens UTF-8 files and saves them with the line endings and byte order mark they had.
 - Notices when a file changes on disk and reloads it, unless you have unsaved changes.
 
 markL is an editor, not a notes app: no sync, accounts, plugins, backlinks or knowledge graph. It has no
@@ -74,14 +87,42 @@ the DMG is 4.0 MiB. In three alternating warm runs on the current machine, with 
 this environment; these are smoke-check results, not a replacement for the original idle-10-second benchmark
 or a cold-boot measurement. Runtime code and frontend bundle are unchanged by packaging.
 
+Inline-rendering check (2026-11-19): no new dependencies. JavaScript grows from 316.01 to 319.96 KB
+(103.60 to 105.02 KB gzipped); CSS grows from 2.02 to 3.14 KB. Chromium keypress-to-frame medians before/after
+were 3.3/5.7 ms at the end of a 1 MB file and 11.2/11.5 ms at the end of a 10 MB file. The 1 MB result remains
+inside the 16 ms budget. Functional preview checks pass in Chromium and WebKit; decorations and task widgets
+are restricted to the viewport, even in large documents.
+With a 100 KB file, five alternating warm native-Mac runs (10-second idle, first launches excluded) measured
+451/461 ms to the window, 580/591 ms to editable, and 70.7/71.7 MiB total memory before/after inline rendering.
+The native app stays 4.59 MiB. Both builds are slower than the original startup targets in this environment;
+inline rendering adds about 11 ms and 1 MiB, not a full-document parse.
+
+Code/image/table check (2026-11-19), compared with basic inline rendering: initial JavaScript is
+about 366.6 KB (120.8 KB gzipped), versus 319.96 KB (105.02 KB); all JavaScript including lazy language chunks is
+about 613 KB. The native app grows from 4.59 to 4.72 MiB. Five alternating warm runs with a 100 KB file and
+10-second idle measured 454/459 ms to the window, 583/592 ms to editable, and 72.0/75.3 MiB memory before/after.
+Both builds still miss the original startup targets on this machine; the memory and size budgets hold.
+Chromium typing medians were 3.7/3.8 ms at 1 MB and 11.2/14.9 ms at 10 MB. Language parsing adds some cost
+in very large files, but the 1 MB typing budget remains met. These figures exclude decoded image memory.
+
+External-opening check (2026-11-20), compared with code/image/table rendering: five alternating warm native-Mac
+runs with a 100 KB file and 10-second idle, excluding warmups, measured 452/465 ms to the window, 591/605 ms
+to editable, and 74.9/75.1 MiB total memory before/after. The native app grows from 4.72 to 4.77 MiB.
+This adds about 14 ms of startup and 0.14 MiB of memory; both builds still miss the original startup targets
+in this environment, while memory and size remain within budget. Native cold/warm file-open and forwarding
+checks pass; a physical Finder drag gesture remains to be checked manually. A separate Chromium typing run
+without concurrent builds measured 5.4 ms at 1 MB and 16.0 ms at 10 MB; the 1 MB median stays under 16 ms.
+
 ## Tech stack
 
 - **[Tauri 2](https://tauri.app)**: a native Rust app that shows its UI in the system webview (WKWebView on macOS,
   WebView2 on Windows, WebKitGTK on Linux). No bundled browser engine, so the download stays a few MB.
 - **Rust** for everything that touches the system: reading files, atomic saves and the recent-files list.
-  Watching files for changes and "Open with" support are planned.
+  A narrow, read-only image protocol validates local image paths and content; the frontend never gets general
+  filesystem access. Native file-open requests stay in Rust and reach the editor through a bounded queue.
+  Watching files for changes is planned.
 - **[CodeMirror 6](https://codemirror.net)** with its markdown language package as the editor. The inline
-  rendering is planned to work like Obsidian's live preview: the document stays the markdown text, and CodeMirror decorations
+  rendering works like Obsidian's live preview: the document stays the markdown text, and CodeMirror decorations
   change how it looks. Files are saved exactly as written, and CodeMirror only draws the visible part of a
   document, which keeps large files fast.
 - **TypeScript without a UI framework**, built with Vite, with bun as the package manager. The UI is a sidebar and
@@ -110,6 +151,13 @@ bun run test                         # frontend tests (Python Playwright, Chromi
 ```
 
 For frontend tests, install `playwright` in a Python environment and run `python3 -m playwright install chromium`.
+To check inline rendering and external-open flows in WebKit too, install it with `python3 -m playwright install webkit` and run
+`python3 tests/frontend.py --webkit-preview` after building the frontend.
+
+After building the release app on macOS, run `python3 tests/native-open-macos.py` to check native cold/warm
+"Open with", relative CLI forwarding to the same process, file associations and local-image scope refresh.
+It refuses to interrupt an existing markL session and restores the recent-files list afterwards.
+Native dialogs and a physical Finder drag gesture still need manual checks.
 
 ### Building the Mac installer
 
@@ -138,10 +186,10 @@ Windows CI is not a replacement for native UI and performance testing before off
 1. ~~Skeleton: a Tauri app with one window, measured on macOS~~ (done). The Windows measurement is still open
 2. ~~Open, edit and save one file~~ (done)
 3. ~~Recent-files sidebar~~ (done)
-4. Inline rendering: headings, emphasis, links, inline code, lists and task lists, quotes, rules
-5. Inline rendering: code blocks with highlighting, images, tables
-6. Open by drag and drop, with "Open with", and from the command line while markL is running (opening a file at
-   startup works)
+4. ~~Inline rendering: headings, emphasis, links, inline code, lists and task lists, quotes, rules~~ (done)
+5. ~~Inline rendering: code blocks with highlighting, images, tables~~ (done)
+6. ~~Open by drag and drop, with "Open with", and from the command line while markL is running~~ (implemented;
+   macOS native open/forwarding tests pass, physical Finder drag check still pending)
 7. Reload on external changes
 8. Packages for macOS (signed, notarized), Windows and Linux
 

@@ -6,9 +6,11 @@ This file is how to work on the code.
 
 ## Status
 
-Roadmap steps 1 to 3 are done on macOS: the window starts fast; files can be opened, edited and saved (New,
+Roadmap steps 1 to 6 are implemented on macOS: the window starts fast; files can be opened, edited and saved (New,
 Open, Save, Save As, unsaved-changes prompts, a file named on the command line at startup); the sidebar lists
-recent files. The Windows measurement is still open. Next: step 4, inline rendering.
+recent files. Markdown, highlighted code, local images and tables render inline. Native cold/warm "Open with"
+and single-instance CLI forwarding pass integration tests; a physical Finder drag still needs a manual check.
+The Windows measurement is still open. Next: step 7, reloading externally changed files.
 
 ## Commands
 
@@ -21,6 +23,7 @@ bun run licenses                    # refresh bundled dependency notices after l
 bun run measure                      # startup + memory of the release build, macOS; --runs N --idle S --file F
 bun run fixtures                     # bench/fixtures/{100k,1m,10m}.md, generated, not committed
 bun run test                         # vite build, tests/frontend.py (Chromium), cargo test
+python3 tests/native-open-macos.py    # release-app native file-open smoke test; close markL first
 bunx tsc --noEmit                    # type-check the frontend
 cd src-tauri && cargo fmt && cargo clippy --release -- -D warnings
 ```
@@ -48,10 +51,17 @@ src-tauri/src/lib.rs        app setup, document state, Tauri commands, close/qui
 src-tauri/src/document.rs   reading and writing files: UTF-8 check, line endings, BOM, atomic save (unit tests)
 src-tauri/src/menu.rs       the app menu
 src-tauri/src/recent.rs     the recent-files list: add, remove, load, save, folder display (unit tests)
-src/main.ts                 document flow: load, edited flag, open/save/close commands, prompts
+src-tauri/src/images.rs     scoped image protocol: path validation, MIME sniffing, limits, unit tests
+src-tauri/src/open_requests.rs bounded native open queue and CLI path parsing (unit tests)
+src/main.ts                 serialized document flow: load, edited flag, open/save/close commands, prompts
 src/editor.ts               CodeMirror setup: extensions, highlighting, theme
+src/preview.ts              viewport-only inline rendering, source reveal and task-checkbox widgets
+src/code-languages.ts       viewport-triggered language loading and mixed Markdown/code parser
+src/images.ts               lazy image widgets and per-document image-context cache
+src/tables.ts               bounded semantic tables, direct block decorations, cell-to-source editing
 src/sidebar.ts              the recent-files list in the sidebar (DOM only, no state of its own)
 tests/frontend.py           frontend tests in Chromium with Tauri's IPC mocked
+tests/native-open-macos.py   native cold/warm Open With, CLI forwarding, associations and image refresh
 scripts/                    measure-macos.py (startup, memory), make-fixtures.py (large test files)
 ```
 
@@ -79,20 +89,35 @@ How the window comes up, and why (`src-tauri/src/lib.rs`):
 
 - **Rust owns where the document lives, the frontend owns its text.** `Document` in lib.rs holds the path, the
   file's format (line endings, BOM) and the edited flag. The webview never passes a path: it can only open what
-  the user picked in a dialog or named on the command line, and save to the current path or one picked in the
-  save dialog. `open_recent` accepts only paths that are on the recent list.
+  the user picked in a dialog, dropped, or supplied via the OS/command line, and save to the current path or
+  one picked in the save dialog. `open_recent` accepts only paths that are on the recent list.
 - **Commands** (all in lib.rs): `open_startup_file`, `open_file`, `open_recent`, `save`, `save_as`, `new_file`,
   `set_edited`, `ask_save_changes` ("save" | "discard" | "cancel"), `recent_files`, `remove_recent`, `quit`,
-  `ready`. File text travels as raw bytes both ways
+  `ready`, `image_context`, `next_open_request`, `open_pending`, `cancel_pending_open`.
+  Image context returns only the current image-generation number, never a path.
+  File text travels as raw bytes both ways
   (`Response` out, `InvokeBody::Raw` in); Rust checks it's UTF-8 before sending. A command that was cancelled
   or failed rejects; Rust has already shown any error, so the frontend just stops.
 - **Menu and window events → frontend:** menu items emit a `command` event with their id (`new`, `open`, `save`,
-  `save-as`). Closing the window or quitting with unsaved changes is prevented in Rust and sent as `close`; the
-  frontend asks, saves if needed, then calls `quit`. Without unsaved changes, Rust closes or quits directly.
+  `save-as`). Closing the window or quitting is always prevented in Rust and sent as `close`; the frontend
+  serializes it with document I/O, asks if edited, saves if needed, then calls `quit`.
   This is why the capability allows `core:event:allow-listen`/`unlisten` and nothing else.
+- **External opens:** register `tauri-plugin-single-instance` first; forwarded CLI paths resolve against the
+  sender's cwd. macOS `RunEvent::Opened` and native window/webview drop events enqueue paths in Rust.
+  Each ingress accepts its first file only. `open_requests::Pending` holds at most 32 requests, with validated
+  IDs, consecutive duplicate suppression and current-path skipping. Cancel clears that queued burst.
+  `open_startup_file` consumes the first queued path. Frontend listeners precede startup loading; `ready`
+  arms `open-request` notifications and flushes pending work. Events contain no paths.
+- **Document serialization:** menu/sidebar/native opens and close all share one frontend promise queue, held
+  behind a startup barrier. Lock both CodeMirror `readOnly` and `editable` during operations; checkbox handlers
+  must respect `readOnly`. Restore editor focus on unlock. Save called from a prompt stays inside its operation,
+  not a nested queued task. A failed read never replaces the current buffer.
+- **File associations:** Markdown/text use `Editor` role and `Alternate` rank in `tauri.conf.json`; never silently
+  change the user's default editor. Browser file drops are prevented before CodeMirror can insert data or
+  navigate; only native paths are accepted. The drop hint is non-interactive and clears on leave/drop/blur.
 - **Edited:** the frontend compares the document with the text as last opened or saved (`Text.eq`, cheap thanks
   to shared structure), so undoing back to the saved text clears it. It tells Rust on each change of the flag;
-  Rust puts "— Edited" in the title and uses the flag for close and quit.
+  Rust puts "— Edited" in the title; the frontend uses its current flag for close and quit prompts.
 - **Dialogs** use `rfd` directly (not tauri-plugin-dialog, which pulls in tauri-plugin-fs). macOS needs them on the
   main thread: `on_main` runs the dialog there as a separate main-thread task and waits without blocking.
 - **Recent files** (`recent.rs`): at most 20 paths, most recent first, in `<config dir>/markL/recent.json`
@@ -104,8 +129,40 @@ How the window comes up, and why (`src-tauri/src/lib.rs`):
 - Files are UTF-8 only; anything else is refused with a message, never converted. Mixed line endings are saved
   with the first one found (`document::Format`).
 - **Editor:** import `markdownLanguage` and `markdownKeymap` from `@codemirror/lang-markdown`, not `markdown()`,
-  which bundles HTML, CSS and JavaScript highlighting. The JS bundle is 315 KB (103 KB gzipped), nearly all of
-  it CodeMirror. Spellcheck, autocorrect and autocapitalize are off.
+  which eagerly bundles HTML, CSS and JavaScript highlighting. `code-languages.ts` configures `parseCode` on
+  that parser instead. Language modules load only for visible blocks. Spellcheck, autocorrect and
+  autocapitalize are off.
+- **Inline preview** (`preview.ts`): a `ViewPlugin` reads the existing `syntaxTree` only in `visibleRanges`.
+  Heading/quote line classes, inline marks and replacement widgets never modify the document. Lines touched
+  by any focused selection reveal source; a multiline span touching those lines reveals its delimiters too.
+  Rebuild on document/selection/viewport/focus or syntax-tree changes, including background parsing. Never
+  force parsing. Replacement ranges must not cross newlines; split multiline link suffixes line by line.
+  Deduplicate enclosing nodes shared by multiple visible ranges (e.g. a long wrapped line). Code blocks,
+  HTML, reference-style links and link definitions retain source. Link spans have no `href`, so editing cannot
+  navigate away and lose unsaved text.
+- **Code:** the mixed parser uses skipping parsers with per-document gates; a viewport visit starts the
+  language import and resolves its gate. Do not keep unresolved gates globally: that can retain closed
+  documents. Unknown languages stay plain. The outer preview skips nested code syntax entirely.
+- **Tables:** `tables.ts` provides block replacements through a `StateField` (never through a view decoration
+  callback). A viewport plugin schedules updates outside `ViewPlugin.update`; selection reveals source
+  synchronously. Retain mapped widgets when edits are outside a table, and compute cell positions from the
+  current mapped block plus relative offsets. Lezer omits empty cell nodes: pipe delimiters determine columns.
+  Preview only top-level tables, at most 100 rows, 32 columns, 1,024 cells and 32 KiB. Other tables retain source.
+  Avoid repeated table-tree scans on ordinary edits in a viewport known to contain no pipes.
+- **Images:** `markl-image` is an asynchronous, GET-only custom protocol, not the generic asset/filesystem
+  protocol. The payload is `image_generation/relative-markdown-URL`, encoded by `convertFileSrc`. Canonicalize
+  against the open document's folder and reject traversal, absolute/remote/hidden paths and symlinks escaping
+  that folder. Strip URL query/fragment before decoding the image filename. Accept only sniffed raster image
+  formats, at most 16 MiB; never SVG/HTML. Responses are `no-store`/`nosniff`, with no path/error details.
+  Open/new/Save As advance the generation; old URLs then fail. Image context IPC is lazy and cached per editor
+  state. A successful save resets the frontend cache. Ignore late results belonging to replaced states.
+  Call `requestMeasure` when an image loads or fails. `MARKL_TIMING=1` reports image status/byte counts,
+  never paths or contents, so native protocol loading can be smoke-tested.
+- **Task checkboxes:** only an explicit click or Space activation changes the one marker character. Each
+  transaction is isolated in undo history. `updateDOM` refreshes widget positions and checked/accessibility
+  state after edits; click handlers read that refreshed position rather than a stale closure. Prevent
+  mousedown's focus change (which would reveal source and remove the widget), but do not cancel the native
+  checkbox click: that would roll its checked state back after the transaction.
 - **Large files:** don't force a full parse (`forceParsing`). @lezer/markdown keeps every top-level block as a
   direct child of the document node and rebuilds that list on each re-parse, so an edit costs time in proportion
   to how much of the document is parsed: ~12 ms near the end of a 10 MB file however it was parsed, ~1 ms
@@ -128,7 +185,7 @@ How the window comes up, and why (`src-tauri/src/lib.rs`):
   changes when the file changes on disk, and ask before discarding anything.
 - **Rust does file access.** The webview gets the fewest Tauri capabilities possible: no general filesystem
   plugin. It calls narrow commands such as open, save and list recent files. Send file contents over IPC as raw
-  responses (`tauri::ipc::Response`), not JSON. Only allow the asset protocol for images next to the open file.
+  responses (`tauri::ipc::Response`), not JSON. Allow only the narrow image protocol scoped to the open file.
 - **Work lazily.** Don't parse, render or lay out text that isn't visible. Load CodeMirror language packs for code
   blocks only when a block needs one. Building the sidebar may `stat` the listed files, never read them.
 - **Same behaviour on every platform.** Platform-specific code lives behind one small module per side.
@@ -158,13 +215,22 @@ How the window comes up, and why (`src-tauri/src/lib.rs`):
 ## Testing
 
 - `cargo test`: file reading and writing (`document.rs`): format detection, byte-exact round trips, atomic save,
-  permissions and symlinks.
+  permissions and symlinks; image protocol scope, generations, MIME validation and size limits (`images.rs`);
+  CLI paths, queue bounds/order, request IDs, current-file skipping and cancellation (`open_requests.rs`).
 - `tests/frontend.py`: the built frontend in Chromium with a mock in place of `__TAURI_INTERNALS__`. It records
   every command and answers for Rust (file text, dialog choices). It covers typing, the edited flag, the open,
   save, new and close flows with their prompts, byte-exact save, list continuation, the sidebar (listing,
-  current and missing files, open, remove, names as text), and typing latency.
+  current and missing files, open, remove, names as text), inline rendering/source reveal, task toggles and undo,
+  code-language loading, image rendering/scope refresh, table alignment/empty cells/cursor mapping, literal
+  HTML, large-file viewport rendering, browser/plugin errors, and typing latency. External-open tests cover
+  startup/late events, save/discard/cancel, failed reads/saves, read-only locks, rapid requests, menu races
+  and browser-drop prevention. The preview and external-open checks also run in Playwright WebKit:
+  `python3 tests/frontend.py --webkit-preview` (install the browser with `python3 -m playwright install webkit`).
   `--screenshots DIR` saves the editor in light and dark mode.
-- Not covered automatically: native dialogs, the menu and the window title. This terminal has neither Screen
+- `tests/native-open-macos.py`: release-app cold/warm Open With, Unicode filenames, relative CLI cwd forwarding,
+  process reuse, bundle associations and local-image scope refresh. Refuses any existing markL process; restores
+  the recent list in `finally`. Do not run alongside benchmarks: both use the real app and recent list.
+- Not covered automatically: physical Finder drags, native dialogs, the menu and the window title. This terminal has neither Screen
   Recording nor Automation permission, so `screencapture` and System Events fail; don't change that without
   asking. Check those by hand in `bun run tauri dev`.
 - What the real app writes can be checked on disk: launching with `--file` (see Measuring) updates
